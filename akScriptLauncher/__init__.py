@@ -2,14 +2,14 @@
 import os
 from maya import utils
 
-TITLE = os.path.basename(os.path.dirname(__file__))
+TITLE = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
 
 print('\n============================================')
 print(TITLE + '\n')
 print('============================================\n')
 
-def aksl_load(*args):
+def launcher_load(*args):
     from . import menu
     menu.LauncherMenu()
 
-utils.executeDeferred(aksl_load)
+utils.executeDeferred(launcher_load)

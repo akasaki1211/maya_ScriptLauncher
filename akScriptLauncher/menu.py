@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
-import os, glob
-from maya import utils, cmds, mel
+import os, json
+from maya import cmds
 
-TITLE = os.path.basename(os.path.dirname(__file__))
-DEFAULTPATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'launcherScripts')
+ROOTPATH = os.path.dirname(os.path.abspath(__file__))
+TITLE = os.path.basename(ROOTPATH)
+SETTINGS_FILE = os.path.join(ROOTPATH, 'settings.json')
 
 class LauncherMenu(object):
     
-    scriptPath = DEFAULTPATH
-
     def __init__(self, *args):
+
+        self.settings = LauncherSettings()
+        self.scriptPath = self.settings.getScriptPath()
         
         if not self.scriptPath:
             self.scriptPath = cmds.internalVar(userScriptDir=True)
@@ -23,9 +25,15 @@ class LauncherMenu(object):
 
         print('{} | Create main menu.'.format(TITLE))
 
+    def update_script_path(self, *args):
+        self.settings.setScriptPath()
+        self.scriptPath = self.settings.getScriptPath()
+        self.build_menu()
+
     def build_menu(self, *args):
         cmds.menu(TITLE, e=True, deleteAllItems=True)
-        #cmds.menuItem(parent=TITLE, divider=True)
+        cmds.menuItem(parent=TITLE, label='Settings', command=self.update_script_path)
+        cmds.menuItem(parent=TITLE, divider=True)
         self.add_menu_item(TITLE, self.scriptPath)
         
         print('{} | Rebuild menu.'.format(TITLE))
@@ -91,3 +99,51 @@ class LauncherMenu(object):
         cmd += 'run.execfile(r\'{}\')'.format(filePath)
 
         return cmd
+
+class LauncherSettings(object):
+
+    def __init__(self):
+        self.settings_file = SETTINGS_FILE
+        self.settings_dict = {
+                'scriptPath' : ''
+            }
+        self.importSettingsFile()
+
+    def getScriptPath(self, *args):
+        return self.settings_dict['scriptPath']
+    
+    def setScriptPath(self, *args):
+        startDir = self.settings_dict['scriptPath']
+        if not startDir:
+            startDir = cmds.internalVar(userScriptDir=True)
+
+        path = cmds.fileDialog2(
+            caption='Select Script Directory', 
+            startingDirectory=startDir,
+            fileMode=3)
+        
+        if not path:
+            return
+        
+        self.settings_dict['scriptPath'] = path[0]
+        
+        self.exportSettingsFile()
+
+    def importSettingsFile(self, *args):
+        if not os.path.isfile(self.settings_file):
+            return
+
+        try:
+            with open(self.settings_file, 'r') as f:
+                self.settings_dict = json.load(f)
+            return True
+        except:
+            return
+
+    def exportSettingsFile(self, *args):
+        try:
+            with open(self.settings_file, 'w') as f:
+                json.dump(self.settings_dict, f, indent=4)
+            return True
+        except:
+            return
