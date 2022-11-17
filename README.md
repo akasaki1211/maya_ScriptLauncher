@@ -1,9 +1,10 @@
 ## Overview
 Simple script launcher for Maya.  
 
+The menu is updated each time it is displayed, there is no need to restart Maya.  
 ![launcherMenu](.images/launcherMenu.png)
 
-The menu is updated each time it is displayed, there is no need to restart Maya. Can also be registered to shelf.  
+Can also be registered to shelf.  
 ![shelves](.images/shelves.png)
 
 > Tested with :  
