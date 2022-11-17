@@ -14,7 +14,7 @@ The menu is updated each time it is displayed, there is no need to restart Maya.
 1. Please do one of the following:
    * Copy the `akScriptLauncher` directory into the `C:\Users\<username>\Documents\maya\scripts`.
    * Add the parent directory of `akScriptLauncher` to PYTHONPATH environment variable.
-2. Execute the following command in `userSetup.py`.
+2. Write the following command in `userSetup.py`.
 ```python
 import akScriptLauncher
 ```
