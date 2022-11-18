@@ -8,8 +8,9 @@ Can also be registered to shelf.
 ![shelves](.images/shelves.png)
 
 > Tested with :  
-> * Maya 2022 (Python3.7.7)  
 > * Maya 2023 (Python3.9.7)  
+> * Maya 2022 (Python3.7.7)  
+> * Maya 2020 (Python2.7.11)  
 
 ## Installation
 1. Please do one of the following:

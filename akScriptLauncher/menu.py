@@ -36,7 +36,7 @@ class LauncherMenu(object):
         cmds.menuItem(parent=TITLE, divider=True)
         self.add_menu_item(TITLE, self.scriptPath)
         
-        print('{} | Rebuild menu.'.format(TITLE))
+        #print('{} | Rebuild menu.'.format(TITLE))
 
     def add_menu_item(self, parent, path, *args):
         dirs, files = self.load_scripts(path)
@@ -82,13 +82,13 @@ class LauncherMenu(object):
 
         return dirs, files
 
-    def create_mel_command(self, filePath, exec=True, *args):
+    def create_mel_command(self, filePath, execute=True, *args):
         filePath = os.path.normpath(filePath)
         filePath = filePath.replace('\\','\\\\\\\\')
         cmd = 'from maya import mel\n'
         cmd += 'mel.eval(\'source \"{}\"\')'.format(filePath)
 
-        if exec:
+        if execute:
             name = os.path.splitext(os.path.basename(filePath))[0]
             cmd += '\nmel.eval(\'{}();\')'.format(name)
         
