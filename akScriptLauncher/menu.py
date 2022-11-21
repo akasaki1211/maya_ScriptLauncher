@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import json
+import copy
 from maya import cmds
 from PySide2 import QtWidgets
 
@@ -112,13 +113,13 @@ class LauncherSettings(object):
 
     def getScriptPaths(self, *args):
         if 'scriptPaths' in self.settings_dict.keys():
-            return self.settings_dict['scriptPaths']
+            return copy.deepcopy(self.settings_dict['scriptPaths'])
         else:
             return []
     
     def setScriptPaths(self, *args):
         if 'scriptPaths' in self.settings_dict.keys():
-            scriptPaths = self.settings_dict['scriptPaths']
+            scriptPaths = copy.deepcopy(self.settings_dict['scriptPaths'])
         else:
             scriptPaths = []
         paths, accepted = ScriptPathDialog.setPath(paths=scriptPaths)
@@ -209,7 +210,7 @@ class ScriptPathDialog(QtWidgets.QDialog):
     def setPath(parent=None, paths=[], *args):
         dialog = ScriptPathDialog(parent)
         dialog.paths = paths
-        dialog.listWidget.addItems(paths)
+        dialog.listWidget.addItems(dialog.paths)
         result = dialog.exec_()
 
-        return (paths, result == QtWidgets.QDialog.Accepted)
+        return (dialog.paths, result == QtWidgets.QDialog.Accepted)
