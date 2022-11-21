@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-import os, json
+import os
+import json
 from maya import cmds
+from PySide2 import QtWidgets
 
 ROOTPATH = os.path.dirname(os.path.abspath(__file__))
 TITLE = os.path.basename(ROOTPATH)
@@ -11,10 +13,10 @@ class LauncherMenu(object):
     def __init__(self, *args):
 
         self.settings = LauncherSettings()
-        self.scriptPath = self.settings.getScriptPath()
+        self.scriptPaths = self.settings.getScriptPaths()
         
-        if not self.scriptPath:
-            self.scriptPath = cmds.internalVar(userScriptDir=True)
+        if not self.scriptPaths:
+            self.scriptPaths = [cmds.internalVar(userScriptDir=True)]
         
         if cmds.menu(TITLE, exists=True):
             cmds.deleteUI(TITLE)
@@ -26,17 +28,16 @@ class LauncherMenu(object):
         print('{} | Create main menu.'.format(TITLE))
 
     def update_script_path(self, *args):
-        self.settings.setScriptPath()
-        self.scriptPath = self.settings.getScriptPath()
+        self.settings.setScriptPaths()
+        self.scriptPaths = self.settings.getScriptPaths()
         self.build_menu()
 
     def build_menu(self, *args):
         cmds.menu(TITLE, e=True, deleteAllItems=True)
         cmds.menuItem(parent=TITLE, label='Settings', command=self.update_script_path)
-        cmds.menuItem(parent=TITLE, divider=True)
-        self.add_menu_item(TITLE, self.scriptPath)
-        
-        #print('{} | Rebuild menu.'.format(TITLE))
+        for sPath in self.scriptPaths:
+            cmds.menuItem(parent=TITLE, divider=True)
+            self.add_menu_item(TITLE, sPath)
 
     def add_menu_item(self, parent, path, *args):
         dirs, files = self.load_scripts(path)
@@ -105,28 +106,27 @@ class LauncherSettings(object):
     def __init__(self):
         self.settings_file = SETTINGS_FILE
         self.settings_dict = {
-                'scriptPath' : ''
+                'scriptPaths' : []
             }
         self.importSettingsFile()
 
-    def getScriptPath(self, *args):
-        return self.settings_dict['scriptPath']
+    def getScriptPaths(self, *args):
+        if 'scriptPaths' in self.settings_dict.keys():
+            return self.settings_dict['scriptPaths']
+        else:
+            return []
     
-    def setScriptPath(self, *args):
-        startDir = self.settings_dict['scriptPath']
-        if not startDir:
-            startDir = cmds.internalVar(userScriptDir=True)
-
-        path = cmds.fileDialog2(
-            caption='Select Script Directory', 
-            startingDirectory=startDir,
-            fileMode=3)
+    def setScriptPaths(self, *args):
+        if 'scriptPaths' in self.settings_dict.keys():
+            scriptPaths = self.settings_dict['scriptPaths']
+        else:
+            scriptPaths = []
+        paths, accepted = ScriptPathDialog.setPath(paths=scriptPaths)
         
-        if not path:
+        if not accepted:
             return
-        
-        self.settings_dict['scriptPath'] = path[0]
-        
+
+        self.settings_dict['scriptPaths'] = paths        
         self.exportSettingsFile()
 
     def importSettingsFile(self, *args):
@@ -147,3 +147,69 @@ class LauncherSettings(object):
             return True
         except:
             return
+
+class ScriptPathDialog(QtWidgets.QDialog):
+    
+    def __init__(self, parent=None, *args):
+        super(ScriptPathDialog, self).__init__(parent, *args)
+        self.paths = []
+        self.initUI()
+    
+    def initUI(self, *args):
+        self.setWindowTitle('Script Path')
+        self.resize(500, 100)
+
+        self.listWidget = QtWidgets.QListWidget()
+        
+        addBtn = QtWidgets.QPushButton('Add')
+        addBtn.clicked.connect(self.addPath)
+        
+        deleteBtn = QtWidgets.QPushButton('Delete')
+        deleteBtn.clicked.connect(self.deletePath)
+        
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.addWidget(addBtn)
+        buttonLayout.addWidget(deleteBtn)
+        
+        saveBtn = QtWidgets.QPushButton('Save')
+        saveBtn.clicked.connect(self.accept)
+        
+        mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.addWidget(self.listWidget)
+        mainLayout.addLayout(buttonLayout)
+        mainLayout.addWidget(saveBtn)
+
+        self.setLayout(mainLayout)
+        
+    def addPath(self, *args):
+        if self.paths:
+            startDir = self.paths[-1]
+        else:
+            startDir = cmds.internalVar(userScriptDir=True)
+        
+        scriptDir = cmds.fileDialog2(
+            caption='Select Script Directory', 
+            startingDirectory=startDir,
+            fileMode=3)
+        
+        if not scriptDir:
+            return
+
+        self.paths.append(scriptDir[0])
+        self.listWidget.clear()
+        self.listWidget.addItems(self.paths)
+        
+    def deletePath(self, *args):
+        row = self.listWidget.currentRow()
+        self.paths.pop(row)
+        self.listWidget.clear()
+        self.listWidget.addItems(self.paths)        
+    
+    @staticmethod
+    def setPath(parent=None, paths=[], *args):
+        dialog = ScriptPathDialog(parent)
+        dialog.paths = paths
+        dialog.listWidget.addItems(paths)
+        result = dialog.exec_()
+
+        return (paths, result == QtWidgets.QDialog.Accepted)
