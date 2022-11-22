@@ -2,8 +2,9 @@
 import os
 import json
 import copy
-from maya import cmds
+from maya import cmds, OpenMayaUI
 from PySide2 import QtWidgets
+from shiboken2 import wrapInstance
 
 ROOTPATH = os.path.dirname(os.path.abspath(__file__))
 TITLE = os.path.basename(ROOTPATH)
@@ -105,6 +106,8 @@ class LauncherMenu(object):
 class LauncherSettings(object):
 
     def __init__(self):
+        ptr = OpenMayaUI.MQtUtil.mainWindow()
+        self.mayaMainWindow = wrapInstance(int(ptr), QtWidgets.QMainWindow)
         self.settings_file = SETTINGS_FILE
         self.settings_dict = {
                 'scriptPaths' : []
@@ -122,7 +125,7 @@ class LauncherSettings(object):
             scriptPaths = copy.deepcopy(self.settings_dict['scriptPaths'])
         else:
             scriptPaths = []
-        paths, accepted = ScriptPathDialog.setPath(paths=scriptPaths)
+        paths, accepted = ScriptPathDialog.setPath(parent=self.mayaMainWindow, paths=scriptPaths)
         
         if not accepted:
             return
