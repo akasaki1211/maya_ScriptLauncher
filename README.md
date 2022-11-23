@@ -24,10 +24,15 @@ Multiple script paths can be set, from the settings dialog.
 import akScriptLauncher
 ```
 3. When you start Maya, `akScriptLauncher` is added to the menu bar.  
-Select the scripts folder from Settings. The script folder path you set will be saved in `settings.json`.
+Select the scripts folder from Settings. The script folder path you set will be saved in `settings.json`.  
 
 > **Note**  
-> You can rename `akScriptLauncher` folder to anything you like.
+> * You can rename `akScriptLauncher` folder to anything you like.  
+> * If you want to load/reload akScriptLauncher while Maya is running, do the following  
+> ```python
+> from akScriptLauncher import menu
+> menu.LauncherMenu()
+> ```
 
 ## Scripts
 It recursively searches in the script folder and adds `*.py` and `*.mel` to the menu. Folders can be nested. If there is an icon image (`.ico` or `.png`) with the same name as the script file name, use it for the icon.  
