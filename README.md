@@ -7,6 +7,9 @@ The menu is updated each time it is displayed, there is no need to restart Maya.
 Can also be registered to shelf.  
 ![shelves](.images/shelves.png)
 
+Multiple script paths can be set, from the settings dialog.  
+![multiScriptPaths](.images/multiScriptPaths.png)
+
 > Tested with :  
 > * Maya 2023 (Python3.9.7)  
 > * Maya 2022 (Python3.7.7)  

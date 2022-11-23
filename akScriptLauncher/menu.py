@@ -38,8 +38,9 @@ class LauncherMenu(object):
         cmds.menu(TITLE, e=True, deleteAllItems=True)
         cmds.menuItem(parent=TITLE, label='Settings', command=self.update_script_path)
         for sPath in self.scriptPaths:
-            cmds.menuItem(parent=TITLE, divider=True)
-            self.add_menu_item(TITLE, sPath)
+            if os.path.isdir(sPath):
+                cmds.menuItem(parent=TITLE, divider=True)
+                self.add_menu_item(TITLE, sPath)
 
     def add_menu_item(self, parent, path, *args):
         dirs, files = self.load_scripts(path)
