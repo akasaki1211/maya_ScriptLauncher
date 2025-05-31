@@ -3,8 +3,13 @@ import os
 import json
 import copy
 from maya import cmds, OpenMayaUI
-from PySide2 import QtWidgets
-from shiboken2 import wrapInstance
+
+try:
+    from PySide6 import QtWidgets
+    from shiboken6 import wrapInstance
+except ImportError:
+    from PySide2 import QtWidgets
+    from shiboken2 import wrapInstance
 
 ROOTPATH = os.path.dirname(os.path.abspath(__file__))
 TITLE = os.path.basename(ROOTPATH)
