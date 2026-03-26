@@ -137,7 +137,13 @@ class LauncherSettings(object):
             return
 
         self.settings_dict['scriptPaths'] = paths        
-        self.exportSettingsFile()
+        success = self.exportSettingsFile()
+        if not success:
+            QtWidgets.QMessageBox.warning(
+                self.mayaMainWindow,
+                'Warning!',
+                'Failed to save script paths settings.\nCheck if the settings file directory is writable.'
+            )
 
     def importSettingsFile(self, *args):
         if not os.path.isfile(self.settings_file):
@@ -155,8 +161,9 @@ class LauncherSettings(object):
             with open(self.settings_file, 'w') as f:
                 json.dump(self.settings_dict, f, indent=4)
             return True
-        except:
-            return
+        except Exception as e:
+            print('Failed to save settings:', str(e))
+            return False
 
 class ScriptPathDialog(QtWidgets.QDialog):
     
@@ -211,6 +218,8 @@ class ScriptPathDialog(QtWidgets.QDialog):
         
     def deletePath(self, *args):
         row = self.listWidget.currentRow()
+        if row < 0:
+            return
         self.paths.pop(row)
         self.listWidget.clear()
         self.listWidget.addItems(self.paths)        
