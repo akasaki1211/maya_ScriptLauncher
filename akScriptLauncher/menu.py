@@ -94,6 +94,7 @@ class LauncherMenu(object):
 
     def create_mel_command(self, file_path: Path, execute: bool = True, *args) -> str:
         cmd = 'from maya import mel\n'
+        cmd += 'print(f\'Running MEL Script: {}\')\n'.format(file_path.as_posix())
         cmd += 'mel.eval(\'source "{}"\')'.format(file_path.as_posix())
         if execute:
             name = file_path.stem
@@ -102,6 +103,7 @@ class LauncherMenu(object):
 
     def create_py_command(self, file_path: Path, *args) -> str:
         cmd = 'from {} import run\n'.format(TITLE)
+        cmd += 'print(f\'Running Python Script: {}\')\n'.format(file_path.as_posix())
         cmd += 'run.run_script(r\'{}\')'.format(file_path.as_posix())
         return cmd
 
