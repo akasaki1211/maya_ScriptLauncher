@@ -48,7 +48,7 @@ class LauncherMenu(object):
                 cmds.menuItem(parent=TITLE, divider=True)
                 self.add_menu_item(TITLE, script_path)
 
-    def add_menu_item(self, parent, path: Path, *args):
+    def add_menu_item(self, parent: str, path: Path, *args):
         dirs, files = self.load_scripts(path)
         
         for dir in dirs:
@@ -92,7 +92,7 @@ class LauncherMenu(object):
 
         return dirs, files
 
-    def create_mel_command(self, file_path: Path, execute=True, *args):
+    def create_mel_command(self, file_path: Path, execute: bool = True, *args) -> str:
         cmd = 'from maya import mel\n'
         cmd += 'mel.eval(\'source "{}"\')'.format(file_path.as_posix())
         if execute:
@@ -100,10 +100,9 @@ class LauncherMenu(object):
             cmd += '\nmel.eval(\'{}();\')'.format(name)
         return cmd
 
-    def create_py_command(self, file_path: Path, *args):
+    def create_py_command(self, file_path: Path, *args) -> str:
         cmd = 'from {} import run\n'.format(TITLE)
         cmd += 'run.run_script(r\'{}\')'.format(file_path.as_posix())
-
         return cmd
 
 class LauncherSettings(object):
@@ -117,13 +116,13 @@ class LauncherSettings(object):
             }
         self.importSettingsFile()
 
-    def getScriptPaths(self, *args):
+    def getScriptPaths(self, *args) -> List[Path]:
         if 'scriptPaths' in self.settings_dict.keys():
             return [Path(p) for p in copy.deepcopy(self.settings_dict['scriptPaths'])]
         else:
             return []
     
-    def setScriptPaths(self, *args):
+    def setScriptPaths(self, *args) -> None:
         if 'scriptPaths' in self.settings_dict.keys():
             scriptPaths = copy.deepcopy(self.settings_dict['scriptPaths'])
         else:
@@ -142,19 +141,19 @@ class LauncherSettings(object):
                 'Failed to save script paths settings.\nCheck if the settings file directory is writable.'
             )
 
-    def importSettingsFile(self, *args):
+    def importSettingsFile(self, *args) -> bool:
         if not self.settings_file.is_file():
-            return
+            return False
 
         try:
             with open(self.settings_file, 'r', encoding='utf-8') as f:
                 self.settings_dict = json.load(f)
             return True
         except Exception as e:
-            print('Failed to save settings:', str(e))
+            print('Failed to load settings:', str(e))
             return False
 
-    def exportSettingsFile(self, *args):
+    def exportSettingsFile(self, *args) -> bool:
         try:
             with open(self.settings_file, 'w', encoding='utf-8') as f:
                 json.dump(self.settings_dict, f, indent=4)
@@ -177,10 +176,10 @@ class ScriptPathDialog(QtWidgets.QDialog):
         self.listWidget = QtWidgets.QListWidget()
         
         addBtn = QtWidgets.QPushButton('Add')
-        addBtn.clicked.connect(self.addPath)
+        addBtn.clicked.connect(self._addPath)
         
         deleteBtn = QtWidgets.QPushButton('Delete')
-        deleteBtn.clicked.connect(self.deletePath)
+        deleteBtn.clicked.connect(self._deletePath)
         
         buttonLayout = QtWidgets.QHBoxLayout()
         buttonLayout.addWidget(addBtn)
@@ -196,7 +195,7 @@ class ScriptPathDialog(QtWidgets.QDialog):
 
         self.setLayout(mainLayout)
         
-    def addPath(self, *args):
+    def _addPath(self, *args):
         if self.paths:
             startDir = self.paths[-1]
         else:
@@ -214,7 +213,7 @@ class ScriptPathDialog(QtWidgets.QDialog):
         self.listWidget.clear()
         self.listWidget.addItems(self.paths)
         
-    def deletePath(self, *args):
+    def _deletePath(self, *args):
         row = self.listWidget.currentRow()
         if row < 0:
             return
@@ -223,7 +222,7 @@ class ScriptPathDialog(QtWidgets.QDialog):
         self.listWidget.addItems(self.paths)        
     
     @staticmethod
-    def setPath(parent=None, paths=None, *args):
+    def setPath(parent = None, paths: Optional[List[str]] = None, *args) -> Tuple[List[str], bool]:
         if paths is None:
             paths = []
 
