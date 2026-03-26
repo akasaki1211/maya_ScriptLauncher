@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
-import os
 import json
 import copy
+from pathlib import Path
+from typing import List, Tuple, Optional
+
 from maya import cmds, OpenMayaUI
 
 try:
@@ -11,19 +12,19 @@ except ImportError:
     from PySide2 import QtWidgets
     from shiboken2 import wrapInstance
 
-ROOTPATH = os.path.dirname(os.path.abspath(__file__))
-TITLE = os.path.basename(ROOTPATH)
-SETTINGS_FILE = os.path.join(ROOTPATH, 'settings.json')
+ROOTPATH = Path(__file__).parent
+TITLE = ROOTPATH.name
+SETTINGS_FILE = ROOTPATH / 'settings.json'
 
 class LauncherMenu(object):
     
     def __init__(self, *args):
 
         self.settings = LauncherSettings()
-        self.scriptPaths = self.settings.getScriptPaths()
-        
+        self.scriptPaths: List[Path] = self.settings.getScriptPaths()
+
         if not self.scriptPaths:
-            self.scriptPaths = [cmds.internalVar(userScriptDir=True)]
+            self.scriptPaths = [Path(cmds.internalVar(userScriptDir=True))]
         
         if cmds.menu(TITLE, exists=True):
             cmds.deleteUI(TITLE)
@@ -42,12 +43,12 @@ class LauncherMenu(object):
     def build_menu(self, *args):
         cmds.menu(TITLE, e=True, deleteAllItems=True)
         cmds.menuItem(parent=TITLE, label='Settings', command=self.update_script_path)
-        for sPath in self.scriptPaths:
-            if os.path.isdir(sPath):
+        for script_path in self.scriptPaths:
+            if script_path.is_dir():
                 cmds.menuItem(parent=TITLE, divider=True)
-                self.add_menu_item(TITLE, sPath)
+                self.add_menu_item(TITLE, script_path)
 
-    def add_menu_item(self, parent, path, *args):
+    def add_menu_item(self, parent, path: Path, *args):
         dirs, files = self.load_scripts(path)
         
         for dir in dirs:
@@ -66,46 +67,42 @@ class LauncherMenu(object):
             elif ext == '.mel':
                 cmd = self.create_mel_command(filePath)
 
-            cmds.menuItem(parent=parent, label=label, command=cmd, image=iconPath)
+            cmds.menuItem(parent=parent, label=label, command=cmd, image=iconPath.as_posix() if iconPath else '')
 
-    def load_scripts(self, path, *args):
-        dirs = []
-        files = []
+    def load_scripts(self, path: Path, *args) -> Tuple[List[Tuple[str, Path]], List[Tuple[str, str, Path, Optional[Path]]]]:
 
-        for f in os.listdir(path):
-            fullPath = os.path.join(path, f)
-            if os.path.isdir(fullPath):
-                dirs.append((f, fullPath))
+        dirs: List[Tuple[str, Path]] = []
+        files: List[Tuple[str, str, Path, Optional[Path]]] = []
+
+        for f in sorted(path.iterdir()):
+            if f.is_dir():
+                dirs.append((f.name, f))
             else:
-                base, ext = os.path.splitext(f)
-                if not ext in ['.py', '.mel']:
+                ext = f.suffix.lower()
+                if ext not in ['.py', '.mel']:
                     continue
 
-                iconPath = os.path.join(path, base + '.ico')
-                if not os.path.isfile(iconPath):
-                    iconPath = os.path.join(path, base + '.png')
-                if not os.path.isfile(iconPath):
-                    iconPath = ''
+                icon_path = f.with_suffix('.ico')
+                if not icon_path.is_file():
+                    icon_path = f.with_suffix('.png')
+                if not icon_path.is_file():
+                    icon_path = None
                 
-                files.append((f, ext, fullPath, iconPath))
+                files.append((f.name, ext, f, icon_path))
 
         return dirs, files
 
-    def create_mel_command(self, filePath, execute=True, *args):
-        filePath = os.path.normpath(filePath)
-        filePath = filePath.replace('\\','\\\\\\\\')
+    def create_mel_command(self, file_path: Path, execute=True, *args):
         cmd = 'from maya import mel\n'
-        cmd += 'mel.eval(\'source \"{}\"\')'.format(filePath)
-
+        cmd += 'mel.eval(\'source "{}"\')'.format(file_path.as_posix())
         if execute:
-            name = os.path.splitext(os.path.basename(filePath))[0]
+            name = file_path.stem
             cmd += '\nmel.eval(\'{}();\')'.format(name)
-        
         return cmd
 
-    def create_py_command(self, filePath, *args):
+    def create_py_command(self, file_path: Path, *args):
         cmd = 'from {} import run\n'.format(TITLE)
-        cmd += 'run.execfile(r\'{}\')'.format(filePath)
+        cmd += 'run.run_script(r\'{}\')'.format(file_path.as_posix())
 
         return cmd
 
@@ -114,7 +111,7 @@ class LauncherSettings(object):
     def __init__(self):
         ptr = OpenMayaUI.MQtUtil.mainWindow()
         self.mayaMainWindow = wrapInstance(int(ptr), QtWidgets.QMainWindow)
-        self.settings_file = SETTINGS_FILE
+        self.settings_file: Path = SETTINGS_FILE
         self.settings_dict = {
                 'scriptPaths' : []
             }
@@ -122,7 +119,7 @@ class LauncherSettings(object):
 
     def getScriptPaths(self, *args):
         if 'scriptPaths' in self.settings_dict.keys():
-            return copy.deepcopy(self.settings_dict['scriptPaths'])
+            return [Path(p) for p in copy.deepcopy(self.settings_dict['scriptPaths'])]
         else:
             return []
     
@@ -146,19 +143,20 @@ class LauncherSettings(object):
             )
 
     def importSettingsFile(self, *args):
-        if not os.path.isfile(self.settings_file):
+        if not self.settings_file.is_file():
             return
 
         try:
-            with open(self.settings_file, 'r') as f:
+            with open(self.settings_file, 'r', encoding='utf-8') as f:
                 self.settings_dict = json.load(f)
             return True
-        except:
-            return
+        except Exception as e:
+            print('Failed to save settings:', str(e))
+            return False
 
     def exportSettingsFile(self, *args):
         try:
-            with open(self.settings_file, 'w') as f:
+            with open(self.settings_file, 'w', encoding='utf-8') as f:
                 json.dump(self.settings_dict, f, indent=4)
             return True
         except Exception as e:
@@ -169,7 +167,7 @@ class ScriptPathDialog(QtWidgets.QDialog):
     
     def __init__(self, parent=None, *args):
         super(ScriptPathDialog, self).__init__(parent, *args)
-        self.paths = []
+        self.paths: List[str] = []
         self.initUI()
     
     def initUI(self, *args):
@@ -225,7 +223,10 @@ class ScriptPathDialog(QtWidgets.QDialog):
         self.listWidget.addItems(self.paths)        
     
     @staticmethod
-    def setPath(parent=None, paths=[], *args):
+    def setPath(parent=None, paths=None, *args):
+        if paths is None:
+            paths = []
+
         dialog = ScriptPathDialog(parent)
         dialog.paths = paths
         dialog.listWidget.addItems(dialog.paths)

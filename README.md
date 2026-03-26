@@ -10,13 +10,15 @@ Can also be registered to shelf.
 Multiple script paths can be set, from the settings dialog.  
 ![multiScriptPaths](.images/multiScriptPaths.png)
 
-> Tested with :  
+> **Note**  
+> Requires Python 3.7 or later (Maya 2022 and above).  
+> 
+> * Maya 2027 (Python 3.13.9)
 > * Maya 2026 (Python 3.11.9)
 > * Maya 2025 (Python 3.11.4)
 > * Maya 2024 (Python 3.10.8)
-> * Maya 2023 (Python3.9.7)  
-> * Maya 2022 (Python3.7.7)  
-> * Maya 2020 (Python2.7.11)  
+> * Maya 2023 (Python 3.9.7)  
+> * Maya 2022 (Python 3.7.7)  
 
 ## Installation
 1. Please do one of the following:

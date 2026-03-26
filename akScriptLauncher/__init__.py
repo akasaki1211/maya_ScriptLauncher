@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-import os
+from pathlib import Path
 from maya import utils
 
-TITLE = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
+TITLE = Path(__file__).parent.name
 
 print('\n============================================')
 print(TITLE + '\n')
