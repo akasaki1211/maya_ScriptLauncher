@@ -126,7 +126,7 @@ class ScriptPathDialog(QtWidgets.QDialog):
         if not scriptDir:
             return
 
-        self.paths.append(scriptDir[0])
+        self.paths.append(scriptDir)
         self.listWidget.clear()
         self.listWidget.addItems(self.paths)
         
