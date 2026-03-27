@@ -51,16 +51,16 @@ class LauncherMenu(object):
     def add_menu_item(self, parent: str, path: Path, *args):
         dirs, files = self.load_scripts(path)
         
-        for dir in dirs:
-            label, dirPath = dir
+        for entry_dir in dirs:
+            label, dirPath = entry_dir
             dirMenu = cmds.menuItem(parent=parent, label=label, 
                                     subMenu=True, tearOff=True)
             self.add_menu_item(dirMenu, dirPath)
         
         cmds.menuItem(parent=parent, divider=True)
 
-        for file in files:
-            label, ext, filePath, iconPath = file
+        for entry_file in files:
+            label, ext, filePath, iconPath = entry_file
 
             if ext == '.py':
                 cmd = self.create_py_command(filePath)
@@ -68,6 +68,15 @@ class LauncherMenu(object):
                 cmd = self.create_mel_command(filePath)
 
             cmds.menuItem(parent=parent, label=label, command=cmd, image=iconPath.as_posix() if iconPath else '')
+
+    def _find_icon(self, script_path: Path) -> Optional[Path]:
+        ico = script_path.with_suffix('.ico')
+        if ico.is_file():
+            return ico
+        png = script_path.with_suffix('.png')
+        if png.is_file():
+            return png
+        return None
 
     def load_scripts(self, path: Path, *args) -> Tuple[List[Tuple[str, Path]], List[Tuple[str, str, Path, Optional[Path]]]]:
 
@@ -82,13 +91,7 @@ class LauncherMenu(object):
                 if ext not in ['.py', '.mel']:
                     continue
 
-                icon_path = f.with_suffix('.ico')
-                if not icon_path.is_file():
-                    icon_path = f.with_suffix('.png')
-                if not icon_path.is_file():
-                    icon_path = None
-                
-                files.append((f.name, ext, f, icon_path))
+                files.append((f.name, ext, f, self._find_icon(f)))
 
         return dirs, files
 
