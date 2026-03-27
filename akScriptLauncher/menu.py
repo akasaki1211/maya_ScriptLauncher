@@ -40,24 +40,22 @@ class LauncherMenu(object):
     def add_menu_item(self, parent: str, path: Path, *args):
         dirs, files = file_utils.load_scripts(path)
         
-        for entry_dir in dirs:
-            label, dirPath = entry_dir
-            dirMenu = cmds.menuItem(parent=parent, label=label, 
-                                    subMenu=True, tearOff=True)
-            self.add_menu_item(dirMenu, dirPath)
+        for dir_path in dirs:
+            dirMenu = cmds.menuItem(parent=parent, label=dir_path.name, subMenu=True, tearOff=True)
+            self.add_menu_item(dirMenu, dir_path)
         
         if dirs and files:
             cmds.menuItem(parent=parent, divider=True, longDivider=False)
 
-        for entry_file in files:
-            label, ext, filePath, iconPath = entry_file
-
+        for file_path, icon_path in files:
+            ext = file_path.suffix.lower()
             if ext == '.py':
-                cmd = self.create_py_command(filePath)
+                cmd = self.create_py_command(file_path)
             elif ext == '.mel':
-                cmd = self.create_mel_command(filePath)
-
-            cmds.menuItem(parent=parent, label=label, command=cmd, image=iconPath.as_posix() if iconPath else '')
+                cmd = self.create_mel_command(file_path)
+            else:
+                continue
+            cmds.menuItem(parent=parent, label=file_path.name, command=cmd, image=icon_path.as_posix() if icon_path else '')
 
     def create_mel_command(self, file_path: Path, execute: bool = True, *args) -> str:
         path_str = file_path.as_posix()

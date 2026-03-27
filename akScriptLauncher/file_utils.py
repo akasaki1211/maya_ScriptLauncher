@@ -12,19 +12,17 @@ def _find_icon(script_path: Path) -> Optional[Path]:
     return None
 
 
-def load_scripts(path: Path) -> Tuple[List[Tuple[str, Path]], List[Tuple[str, str, Path, Optional[Path]]]]:
-    dirs: List[Tuple[str, Path]] = []
-    files: List[Tuple[str, str, Path, Optional[Path]]] = []
+def load_scripts(path: Path) -> Tuple[List[Path], List[Tuple[Path, Optional[Path]]]]:
+    
+    dirs: List[Path] = []
+    files: List[Tuple[Path, Optional[Path]]] = []
 
     for f in sorted(path.iterdir()):
         if f.is_dir():
-            dirs.append((f.name, f))
+            dirs.append(f)
         else:
-            ext = f.suffix.lower()
-            if ext not in ['.py', '.mel']:
+            if f.suffix.lower() not in ['.py', '.mel']:
                 continue
-
-            icon_path = _find_icon(f)
-            files.append((f.name, ext, f, icon_path))
+            files.append((f, _find_icon(f)))
 
     return dirs, files
