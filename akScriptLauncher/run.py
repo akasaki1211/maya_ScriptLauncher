@@ -1,13 +1,6 @@
-# -*- coding: utf-8 -*-
+from typing import Optional, Dict, Any
+import runpy
 
-def execfile(filePath, globals=None, locals=None):
-    if globals is None:
-        globals = {}
-        
-    globals.setdefault('__name__', '__main__')
-    globals.setdefault('__file__', filePath)
-    
-    with open(filePath, 'rb') as f:
-        code = compile(f.read(), filePath, 'exec')
-        
-    exec(code, globals, locals)
+def run_script(filepath: str, extra_globals: Optional[Dict[str, Any]] = None) -> Any:
+    init_globals = extra_globals or {}
+    return runpy.run_path(filepath, init_globals=init_globals, run_name="__main__")
