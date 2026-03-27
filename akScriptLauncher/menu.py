@@ -63,7 +63,6 @@ class LauncherMenu(object):
         lines = []
         lines.append('from maya import mel')
         lines.append(f'print(\'Running MEL Script: {path_str}\')')
-        lines.append(f"mel.eval('source ' + {path_str})")
         lines.append(f'mel.eval(\'source "{path_str}"\')')
         if execute:
             lines.append(f'mel.eval(\'{file_path.stem}();\')')
@@ -74,6 +73,5 @@ class LauncherMenu(object):
         lines = []
         lines.append(f'from {TITLE} import run')
         lines.append(f'print(\'Running Python Script: {path_str}\')')
-        lines.append(f"run.run_script({path_str})")
         lines.append(f'run.run_script(\'{path_str}\')')
         return '\n'.join(lines)
