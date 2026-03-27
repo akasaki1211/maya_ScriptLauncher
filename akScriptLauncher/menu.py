@@ -96,19 +96,24 @@ class LauncherMenu(object):
         return dirs, files
 
     def create_mel_command(self, file_path: Path, execute: bool = True, *args) -> str:
-        cmd = 'from maya import mel\n'
-        cmd += 'print(f\'Running MEL Script: {}\')\n'.format(file_path.as_posix())
-        cmd += 'mel.eval(\'source "{}"\')'.format(file_path.as_posix())
+        path_str = file_path.as_posix()
+        lines = []
+        lines.append('from maya import mel')
+        lines.append(f'print(\'Running MEL Script: {path_str}\')')
+        lines.append(f"mel.eval('source ' + {path_str})")
+        lines.append(f'mel.eval(\'source "{path_str}"\')')
         if execute:
-            name = file_path.stem
-            cmd += '\nmel.eval(\'{}();\')'.format(name)
-        return cmd
-
+            lines.append(f'mel.eval(\'{file_path.stem}();\')')
+        return '\n'.join(lines)
+    
     def create_py_command(self, file_path: Path, *args) -> str:
-        cmd = 'from {} import run\n'.format(TITLE)
-        cmd += 'print(f\'Running Python Script: {}\')\n'.format(file_path.as_posix())
-        cmd += 'run.run_script(r\'{}\')'.format(file_path.as_posix())
-        return cmd
+        path_str = file_path.as_posix()
+        lines = []
+        lines.append(f'from {TITLE} import run')
+        lines.append(f'print(\'Running Python Script: {path_str}\')')
+        lines.append(f"run.run_script({path_str})")
+        lines.append(f'run.run_script(\'{path_str}\')')
+        return '\n'.join(lines)
 
 class LauncherSettings(object):
 
