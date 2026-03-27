@@ -34,7 +34,7 @@ class LauncherMenu(object):
         cmds.menuItem(parent=TITLE, label='Settings', command=self.update_script_path)
         for script_path in self.scriptPaths:
             if script_path.is_dir():
-                cmds.menuItem(parent=TITLE, divider=True)
+                cmds.menuItem(parent=TITLE, divider=True, dividerLabel=f'From: {script_path.name}')
                 self.add_menu_item(TITLE, script_path)
 
     def add_menu_item(self, parent: str, path: Path, *args):
@@ -46,7 +46,8 @@ class LauncherMenu(object):
                                     subMenu=True, tearOff=True)
             self.add_menu_item(dirMenu, dirPath)
         
-        cmds.menuItem(parent=parent, divider=True)
+        if dirs and files:
+            cmds.menuItem(parent=parent, divider=True, longDivider=False)
 
         for entry_file in files:
             label, ext, filePath, iconPath = entry_file
